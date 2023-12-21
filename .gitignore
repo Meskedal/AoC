@@ -2,3 +2,6 @@ build
 .cache
 test
 .vscode
+compile_commands.json
+golang.exe
+day1.exe
