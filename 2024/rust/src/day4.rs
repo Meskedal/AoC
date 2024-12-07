@@ -71,8 +71,6 @@ fn part_1(char_matrix: &Vec<Vec<char>>) -> i32 {
 
 #[aoc(day4, part2)]
 fn part_2(char_matrix: &Vec<Vec<char>>) -> i32 {
-    // let rows_min: i32 = 1;
-    // let cols_min: i32 = 1;
     let rows_max = char_matrix.len() as i32;
     let cols_max = char_matrix[0].len() as i32;
 
