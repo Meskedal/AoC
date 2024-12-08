@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
@@ -14,6 +15,16 @@ fn input_generator(input: &str) -> Vec<Vec<char>> {
 struct Vector {
     row: i32,
     col: i32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+struct Pose {
+    position: Vector,
+    direction: Vector,
+}
+
+fn test_hash(position: Vector) -> String {
+    format!("{}-{}", position.row, position.col)
 }
 
 impl Vector {
@@ -97,9 +108,10 @@ fn does_obstruction_cause_loop(char_matrix: &Vec<Vec<char>>, guard_position: Vec
     let rows_max = char_matrix.len() as i32;
     let cols_max = char_matrix[0].len() as i32;
 
-    let mut guard_position = guard_position;
-    let mut guard_direction = guard_unit_direction;
+    // let mut guard_position = guard_position;
+    // let mut guard_direction = guard_unit_direction;
 
+    let mut guard_pose = Pose { position: guard_position, direction: guard_unit_direction };
     let direction_char_map = HashMap::from([
         (Vector { row: -1, col: 0 }, '^'),
         (Vector { row: 0, col: 1 }, '>'),
@@ -114,18 +126,17 @@ fn does_obstruction_cause_loop(char_matrix: &Vec<Vec<char>>, guard_position: Vec
     let mut char_matrix_debug = char_matrix.clone();
     char_matrix_debug[obstruction_position.row as usize][obstruction_position.col as usize] = 'O';
     loop {
-        if distinct_poses.contains(&(guard_position, guard_direction)) {
+        if distinct_poses.contains(&guard_pose) {
             // print_matrix(&char_matrix_debug);
             return true;
         }
-        distinct_poses.insert((guard_position, guard_direction)); 
-        char_matrix_debug[guard_position.row as usize][guard_position.col as usize] = direction_char_map[&guard_direction];
+        distinct_poses.insert(guard_pose); 
+        // char_matrix_debug[guard_position.row as usize][guard_position.col as usize] = direction_char_map[&guard_pose];
 
-        let row = guard_position.row + guard_direction.row;
-        let col = guard_position.col + guard_direction.col;
+        let row = guard_pose.position.row + guard_pose.direction.row;
+        let col = guard_pose.position.col + guard_pose.direction.col;
 
         // If we arrive at a previously used pose (position and direction) we have a loop
-
         if !(row >= rows_min && row < rows_max && col >= cols_min && col < cols_max) {
             // We are outside boundaries and done 
             break;
@@ -134,11 +145,11 @@ fn does_obstruction_cause_loop(char_matrix: &Vec<Vec<char>>, guard_position: Vec
         // Rotate if the next position is an obstacle or the obstruction position
         if char_matrix[row as usize][col as usize] == obstacle_char  || (row == obstruction_position.row && col == obstruction_position.col) {
             // Rotate the guard unit direction clockwise
-            guard_direction = guard_direction.rotate_clockwise();
+            guard_pose.direction = guard_pose.direction.rotate_clockwise();
             continue;
         } 
         // Move the guard in the current direction
-        guard_position = Vector { row, col };
+        guard_pose.position = Vector { row, col };
     }
     false
 }
@@ -173,15 +184,15 @@ fn part_2(char_matrix: &Vec<Vec<char>>) -> i32 {
         let row = guard_position.row + guard_direction.row;
         let col = guard_position.col + guard_direction.col;
 
-
         if !(row >= rows_min && row < rows_max && col >= cols_min && col < cols_max) {
             // We are outside boundaries and done 
             break;
         }
 
+
         let obstruction_position = Vector { row, col };
         if does_obstruction_cause_loop(char_matrix, guard_position, guard_direction, obstruction_position) {
-            distinct_obstructions.insert(obstruction_position);
+            distinct_obstructions.insert(test_hash(obstruction_position));
         }
 
         if char_matrix[row as usize][col as usize] == obstacle_char {
@@ -189,6 +200,7 @@ fn part_2(char_matrix: &Vec<Vec<char>>) -> i32 {
             guard_direction = guard_direction.rotate_clockwise();
             continue;
         } 
+
 
         // Move the guard in the current direction
         guard_position = Vector { row, col };
