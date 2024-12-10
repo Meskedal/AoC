@@ -60,15 +60,6 @@ pub fn part_1(input: &Vec<(i64, Vec<i64>)>) -> i64 {
                     }
                 }
             });
-            // for (i, values) in numbers.windows(2).enumerate() {
-            //     result += match operator[i] {
-            //         Operators::ADD => add(values[0], values[1]),
-            //         Operators::MUL => mul(values[0], values[1]),
-            //         _ => 0
-            //     };
-            // }
-
-            // println!("Result: {}, Expected: {}, Numbers {:?}, Operators: {:?}", result, *test_value, numbers, operator);
             if result == *test_value {
                 total_sum_test_values += result;
                 break;
@@ -99,15 +90,6 @@ pub fn part_2(input: &Vec<(i64, Vec<i64>)>) -> i64 {
                     }
                 }
             });
-            // for (i, values) in numbers.windows(2).enumerate() {
-            //     result += match operator[i] {
-            //         Operators::ADD => add(values[0], values[1]),
-            //         Operators::MUL => mul(values[0], values[1]),
-            //         _ => 0
-            //     };
-            // }
-
-            // println!("Result: {}, Expected: {}, Numbers {:?}, Operators: {:?}", result, *test_value, numbers, operator);
             if result == *test_value {
                 total_sum_test_values += result;
                 break;
