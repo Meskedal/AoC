@@ -55,7 +55,8 @@ pub fn part_1(input: &Vec<u32>) -> u64 {
     filesystem_checksum
 }
 
-// This function populates the final checksum directly instead of using a vector to store the filesystem.
+// This function populates the final checksum directly instead of using a vector to store the filesystem
+// before calculating the checksum.
 pub fn part_1_v2(input: &Vec<u32>) -> u64 {
     let mut filesystem_checksum = 0;
     let mut filesystem_index = 0;
@@ -67,7 +68,7 @@ pub fn part_1_v2(input: &Vec<u32>) -> u64 {
     let mut file_block_count_right = input[index_right];
     let mut current_free_space = 0;
     'main: loop {
-        // If we have available free spaces, it is time to fill them with the right side file block count 
+        // If we have available free spaces, fill them with the right side file block count 
         while current_free_space > 0 {
             // If the current file block count has been fully moved, then we need to iterate to the next file block count, skipping the free space count for the right iterator
             if file_block_count_right == 0 {
