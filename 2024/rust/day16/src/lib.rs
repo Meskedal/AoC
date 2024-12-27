@@ -44,13 +44,47 @@ struct PathNode {
 	right: bool,
 	up: bool,
 	down: bool,
+	min_cost: i32,
+}
+
+fn update_nodes(y: usize, x: usize, accumulated_cost: i32, prev_direction: Vector2D<i32>, maze_nodes: &mut Vec<Vec<PathNode>>) {
+	let mut current_node = &maze_nodes[y][x];
+
+	if accumulated_cost > current_node.min_cost {
+		return;
+	}
+
+	if current_node.up {
+		if prev_direction != UP {
+			
+		}
+	}
+
+	if current_node.down { 
+		if prev_direction != DOWN {
+
+		}
+	}
+
+	if current_node.left {
+		if prev_direction != LEFT {
+
+		}
+
+	}
+	
+	if current_node.right {
+		if prev_direction != RIGHT {
+
+		}
+	}
 }
 
 pub fn part_1(maze: &Vec<Vec<char>>) -> i32 {
 	let start= find_char(maze, START_CHAR);
 	let end = find_char(maze, END_CHAR);
 
-	let mut maze_nodes = vec![vec![PathNode{left: false, right: false, up: false, down: false}; maze[0].len()]; maze.len()];
+	let mut maze_nodes = vec![vec![PathNode{left: false, right: false, up: false, down: false, min_cost: i32::MAX}; maze[0].len()]; maze.len()];
 	for y in 1..maze.len() - 1 {
 		for x in 1..maze[0].len()-1 {
 			let up_position = Vector2D {x: x, y: y} + UP.as_usizes();
@@ -70,6 +104,11 @@ pub fn part_1(maze: &Vec<Vec<char>>) -> i32 {
 				maze_nodes[y][x].down = true;
 			}
 		}
+	}
+
+	loop {
+		let end_node = maze_nodes[end.y][end.x];
+		break;
 	}
 
 	println!("{:?}, {:?}", start, end);
