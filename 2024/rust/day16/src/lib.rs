@@ -47,6 +47,23 @@ struct PathNode {
 	min_cost: i32,
 }
 
+fn print_cost_matrix(maze_nodes: &Vec<Vec<PathNode>>) {
+	for y in 0..maze_nodes.len() {
+		for x in 0..maze_nodes[0].len() {
+			print!("{}, ", if maze_nodes[y][x].min_cost != i32::MAX {maze_nodes[y][x].min_cost } else {-1});
+		}
+		println!();
+	}
+}
+fn print_matrix(maze: &Vec<Vec<char>>) {
+	for y in 0..maze.len() {
+		for x in 0..maze[0].len() {
+			print!("{}", maze[y][x]);
+		}
+		println!();
+	}
+}
+
 fn get_rotate_cost(current_direction: &Vector2D<i32>, next_direction: &Vector2D<i32>) -> i32 {
 	let rotate_cost = 1000;
 	if current_direction == next_direction {
@@ -68,8 +85,8 @@ fn get_rotate_cost(current_direction: &Vector2D<i32>, next_direction: &Vector2D<
 	panic!("Unable to rotate direction to valid direction")
 }
 
-fn update_nodes(y: usize, x: usize, accumulated_cost: i32, prev_direction: Vector2D<i32>, maze_nodes: &mut Vec<Vec<PathNode>>) {
-	let current_node = maze_nodes[y][x];
+fn update_nodes(position: &Vector2D<usize>, accumulated_cost: i32, prev_direction: Vector2D<i32>, maze_nodes: &mut Vec<Vec<PathNode>>) {
+	let current_node = maze_nodes[position.y][position.x];
 	let mut next_node: Vector2D<usize>;
 
 	// If we are exploring a node that has a currently higher cost than the min cost of the node, the there is node need to explore this option. 
@@ -77,31 +94,31 @@ fn update_nodes(y: usize, x: usize, accumulated_cost: i32, prev_direction: Vecto
 		return;
 	}
 
-	maze_nodes[y][x].min_cost = accumulated_cost;
+	maze_nodes[position.y][position.x].min_cost = accumulated_cost;
 
 
 	if current_node.up {
 		let accumulated_cost = accumulated_cost + get_rotate_cost(&prev_direction, &UP) + 1;
-		next_node = Vector2D {x: x + UP.x as usize, y: y + UP.y as usize};
-		update_nodes(next_node.y, next_node.x, accumulated_cost, UP, maze_nodes);
+		next_node = (position.as_i32s() + UP).as_usizes();
+		update_nodes(&next_node, accumulated_cost, UP, maze_nodes);
 	}
 
 	if current_node.down { 
 		let accumulated_cost = accumulated_cost + get_rotate_cost(&prev_direction, &DOWN) + 1;
-		next_node = Vector2D {x: x + DOWN.x as usize, y: y + DOWN.y as usize};
-		update_nodes(next_node.y, next_node.x, accumulated_cost, DOWN, maze_nodes);
+		next_node = (position.as_i32s() + DOWN).as_usizes();
+		update_nodes(&next_node, accumulated_cost, DOWN, maze_nodes);
 	}
 
 	if current_node.left {
 		let accumulated_cost = accumulated_cost + get_rotate_cost(&prev_direction, &LEFT) + 1;
-		next_node = Vector2D {x: x + LEFT.x as usize, y: y + LEFT.y as usize};
-		update_nodes(next_node.y, next_node.x, accumulated_cost, LEFT, maze_nodes);
+		next_node = (position.as_i32s() + LEFT).as_usizes();
+		update_nodes(&next_node, accumulated_cost, LEFT, maze_nodes);
 	}
 	
 	if current_node.right {
 		let accumulated_cost = accumulated_cost + get_rotate_cost(&prev_direction, &RIGHT) + 1;
-		next_node = Vector2D {x: x + RIGHT.x as usize, y: y + RIGHT.y as usize};
-		update_nodes(next_node.y, next_node.x, accumulated_cost, RIGHT, maze_nodes);
+		next_node = (position.as_i32s() + RIGHT).as_usizes();
+		update_nodes(&next_node, accumulated_cost, RIGHT, maze_nodes);
 	}
 }
 
@@ -116,24 +133,24 @@ pub fn part_1(maze: &Vec<Vec<char>>) -> i32 {
 			let left_position = Vector2D {x: x, y: y} + LEFT.as_usizes();
 			let right_position = Vector2D {x: x, y: y} + RIGHT.as_usizes();
 			let down_position = Vector2D {x: x, y: y} + DOWN.as_usizes();
-			if maze[up_position.y][up_position.x] == EMPTY_CHAR || maze[up_position.y][up_position.x] == END_CHAR || maze[up_position.y][up_position.x] == START_CHAR {
+			if maze[up_position.y][up_position.x] !=  WALL_CHAR {
 				maze_nodes[y][x].up = true;
 			}
-			if maze[left_position.y][left_position.x] == EMPTY_CHAR || maze[left_position.y][left_position.x] == END_CHAR || maze[left_position.y][left_position.x] == START_CHAR {
+			if maze[left_position.y][left_position.x] != WALL_CHAR {
 				maze_nodes[y][x].left = true;
 			}
-			if maze[right_position.y][right_position.x] == EMPTY_CHAR || maze[right_position.y][right_position.x] == END_CHAR || maze[right_position.y][right_position.x] == START_CHAR {
+			if maze[right_position.y][right_position.x] != WALL_CHAR {
 				maze_nodes[y][x].right = true;
 			}
-			if maze[down_position.y][down_position.x] == EMPTY_CHAR || maze[down_position.y][down_position.x] == END_CHAR || maze[down_position.y][down_position.x] == START_CHAR {
+			if maze[down_position.y][down_position.x] != WALL_CHAR {
 				maze_nodes[y][x].down = true;
 			}
 		}
 	}
 
-
-	let next_node = Vector2D {x: start.x + LEFT.x as usize, y: start.y + LEFT.y as usize};
-	update_nodes(next_node.y, next_node.x, 0, RIGHT, &mut maze_nodes);
+	update_nodes(&start, 0, RIGHT, &mut maze_nodes);
+	print_matrix(maze);
+	print_cost_matrix(&maze_nodes);
 
 	println!("{:?}, {:?}", start, end);
 	0
