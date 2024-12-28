@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashSet};
 
 use vector2d::Vector2D;
+use std::hash::{Hash, Hasher};
 
 
 struct Reindeer {
 	pos: Vector2D<i32>,
-	dir: Vector2D<i32>,
 }
 
 
@@ -50,7 +50,7 @@ struct PathNode {
 fn print_cost_matrix(maze_nodes: &Vec<Vec<PathNode>>) {
 	for y in 0..maze_nodes.len() {
 		for x in 0..maze_nodes[0].len() {
-			print!("{}, ", if maze_nodes[y][x].min_cost != i32::MAX {maze_nodes[y][x].min_cost } else {-1});
+			print!("{:width$}, ", if maze_nodes[y][x].min_cost != i32::MAX {maze_nodes[y][x].min_cost } else {-1}, width = 5);
 		}
 		println!();
 	}
@@ -129,11 +129,11 @@ pub fn part_1(maze: &Vec<Vec<char>>) -> i32 {
 	let mut maze_nodes = vec![vec![PathNode{left: false, right: false, up: false, down: false, min_cost: i32::MAX}; maze[0].len()]; maze.len()];
 	for y in 1..maze.len() - 1 {
 		for x in 1..maze[0].len()-1 {
-			let up_position = Vector2D {x: x, y: y} + UP.as_usizes();
-			let left_position = Vector2D {x: x, y: y} + LEFT.as_usizes();
-			let right_position = Vector2D {x: x, y: y} + RIGHT.as_usizes();
-			let down_position = Vector2D {x: x, y: y} + DOWN.as_usizes();
-			if maze[up_position.y][up_position.x] !=  WALL_CHAR {
+			let up_position = (Vector2D {x: x, y: y}.as_i32s() + UP).as_usizes();
+			let left_position = (Vector2D {x: x, y: y}.as_i32s() + LEFT).as_usizes();
+			let right_position = (Vector2D {x: x, y: y}.as_i32s() + RIGHT).as_usizes();
+			let down_position = (Vector2D {x: x, y: y}.as_i32s() + DOWN).as_usizes();
+			if maze[up_position.y][up_position.x] != WALL_CHAR {
 				maze_nodes[y][x].up = true;
 			}
 			if maze[left_position.y][left_position.x] != WALL_CHAR {
@@ -149,13 +149,100 @@ pub fn part_1(maze: &Vec<Vec<char>>) -> i32 {
 	}
 
 	update_nodes(&start, 0, RIGHT, &mut maze_nodes);
-	print_matrix(maze);
 	print_cost_matrix(&maze_nodes);
+	maze_nodes[end.y][end.x].min_cost
+}
 
-	println!("{:?}, {:?}", start, end);
-	0
+fn hash_position(position: &Vector2D<usize>) -> String {
+	format!("{}, {}", position.x, position.y)
+}
+
+fn get_min_cost_paths(position: &Vector2D<usize>, nodes: &Vec<Vec<PathNode>>, visited: &mut HashSet<String>) {
+	let node = nodes[position.y][position.x];
+	// Next node must be lower cost than current node. 
+	let mut min_cost_neighbor = node.min_cost;
+	let mut min_cost_neighbors: Vec<Vector2D<usize>> = vec![];
+	if node.up {
+		let next_node_pos = (position.as_i32s() + UP).as_usizes();
+		let next_node = nodes[next_node_pos.y][next_node_pos.x];
+		if next_node.min_cost < min_cost_neighbor {
+			min_cost_neighbors = vec![next_node_pos];
+			min_cost_neighbor = next_node.min_cost;
+		} else if next_node.min_cost == min_cost_neighbor {
+			min_cost_neighbors.push(next_node_pos);
+		}
+	}
+
+	if node.left {
+		let next_node_pos = (position.as_i32s() + LEFT).as_usizes();
+		let next_node = nodes[next_node_pos.y][next_node_pos.x];
+		if next_node.min_cost < min_cost_neighbor {
+			min_cost_neighbors = vec![next_node_pos];
+			min_cost_neighbor = next_node.min_cost;
+		} else if next_node.min_cost == min_cost_neighbor {
+			min_cost_neighbors.push(next_node_pos);
+		}
+	}
+
+	if node.right {
+		let next_node_pos = (position.as_i32s() + RIGHT).as_usizes();
+		let next_node = nodes[next_node_pos.y][next_node_pos.x];
+		if next_node.min_cost < min_cost_neighbor {
+			min_cost_neighbors = vec![next_node_pos];
+			min_cost_neighbor = next_node.min_cost;
+		} else if next_node.min_cost == min_cost_neighbor {
+			min_cost_neighbors.push(next_node_pos);
+		}
+	}
+
+	if node.down {
+		let next_node_pos = (position.as_i32s() + DOWN).as_usizes();
+		let cost_neighbor = nodes[next_node_pos.y][next_node_pos.x].min_cost;
+		if cost_neighbor < min_cost_neighbor {
+			min_cost_neighbors = vec![next_node_pos];
+			min_cost_neighbor = cost_neighbor;
+		} else if cost_neighbor == min_cost_neighbor {
+			min_cost_neighbors.push(next_node_pos);
+		}
+	}
+
+	for neighbor_node in min_cost_neighbors.iter() {
+		visited.insert(hash_position(neighbor_node));
+		get_min_cost_paths(neighbor_node, nodes, visited);
+	}
 }
 
 pub fn part_2(maze: &Vec<Vec<char>>) -> i32 {
-	0
+	let start= find_char(maze, START_CHAR);
+	let end = find_char(maze, END_CHAR);
+
+	let mut maze_nodes = vec![vec![PathNode{left: false, right: false, up: false, down: false, min_cost: i32::MAX}; maze[0].len()]; maze.len()];
+	for y in 1..maze.len() - 1 {
+		for x in 1..maze[0].len()-1 {
+			let up_position = (Vector2D {x: x, y: y}.as_i32s() + UP).as_usizes();
+			let left_position = (Vector2D {x: x, y: y}.as_i32s() + LEFT).as_usizes();
+			let right_position = (Vector2D {x: x, y: y}.as_i32s() + RIGHT).as_usizes();
+			let down_position = (Vector2D {x: x, y: y}.as_i32s() + DOWN).as_usizes();
+			if maze[up_position.y][up_position.x] != WALL_CHAR {
+				maze_nodes[y][x].up = true;
+			}
+			if maze[left_position.y][left_position.x] != WALL_CHAR {
+				maze_nodes[y][x].left = true;
+			}
+			if maze[right_position.y][right_position.x] != WALL_CHAR {
+				maze_nodes[y][x].right = true;
+			}
+			if maze[down_position.y][down_position.x] != WALL_CHAR {
+				maze_nodes[y][x].down = true;
+			}
+		}
+	}
+
+	update_nodes(&start, 0, RIGHT, &mut maze_nodes);
+	print_cost_matrix(&maze_nodes);
+
+
+	let mut min_cost_positions = HashSet::from([hash_position(&end)]);
+	get_min_cost_paths(&end, &maze_nodes, &mut min_cost_positions);
+	min_cost_positions.len() as i32
 }
