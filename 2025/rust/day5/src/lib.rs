@@ -27,6 +27,17 @@ pub fn part_1(input: &(Vec<(i64, i64)>, Vec<i64>)) -> i64 {
 }
 
 pub fn part_2(input: &(Vec<(i64, i64)>, Vec<i64>)) -> i64 {
-	let (ingredient_id_ranges, ingredient_ids) = input;
+	let (ingredient_id_ranges, _) = input;
+	let mut total_id_ranges: Vec<(i64, i64)> = vec![];
+	for &(ingredient_id_range_min, ingredient_id_range_max) in ingredient_id_ranges {
+		let mut updated = false;
+		for (total_id_range_min, total_id_range_max) in total_id_ranges.iter_mut() {
+
+		}
+		if !updated {
+			// Create a new entry 
+			total_id_ranges.push((ingredient_id_range_min, ingredient_id_range_max));
+		}
+	}
 	0
 }
