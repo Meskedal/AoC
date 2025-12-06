@@ -9,7 +9,15 @@ fn test_day_5_part_1_example() {
 #[test]
 fn test_day_5_part_2_example() {
 	let input = day5::input_generator(include_str!("../input/example.txt"));
-	let expected = 0;
+	let expected = 14;
+	let result = day5::part_2(&input);
+	assert_eq!(result, expected);
+}
+
+#[test]
+fn test_day_5_part_2_example_2() {
+	let input = day5::input_generator(include_str!("../input/example2.txt"));
+	let expected = 13;
 	let result = day5::part_2(&input);
 	assert_eq!(result, expected);
 }
