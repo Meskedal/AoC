@@ -13,7 +13,6 @@ fn print_matrix(matrix: &Vec<Vec<char>>) {
 		}
 		println!("")
 	}
-
 }
 
 fn count_neighbors(matrix: &Vec<Vec<char>>, row: usize, col: usize) -> i32 {
