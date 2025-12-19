@@ -41,6 +41,10 @@ pub fn part_1(input: &Vec<Coordinate>, target_junction_pairs: usize) -> i64 {
 	}
 	junction_pair_lengths.sort_by(|a, b| a.2.cmp(&b.2));
 
+	junction_pair_lengths = input.iter().enumerate().flat_map(|(i, &a)| {
+		input.iter().skip(i+1).enumerate().map(move |(j, &b)| (i,j,a.euclidean_distance(&b)))
+	}).collect();
+
 	let mut junction_pairs_count = 0;
 	let mut junction_pair_index = 0;
 	'outer: while junction_pairs_count < target_junction_pairs {
