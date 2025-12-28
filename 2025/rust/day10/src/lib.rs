@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::collections::VecDeque;
 
 pub fn input_generator(input: &str) -> (Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i32>>) {
     let re = Regex::new(r"^\[(.*?)\]\s*((?:\([^\)]*\)\s*)+)\{([^\}]*)\}").unwrap();
@@ -48,54 +49,47 @@ pub fn input_generator(input: &str) -> (Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i3
     )
 }
 
-fn xor(indicator_light: i32, button: Vec<i32>) -> i32 {
-	let mut il = indicator_light;
-	for b in button {
-		il ^= 1 << b;
-	}
-	il
+fn xor(bits: i32, button: &[i32]) -> i32 {
+    button.iter().fold(bits, |acc, &b| acc ^ (1 << b))
 }
 
-fn recursive(bits: i32, indicator_light: i32, buttons: Vec<Vec<i32>>, depth: i32, lowest_candidate: i32) -> Option<i32> {
-    if depth >= lowest_candidate {
-        return None;
-    }
-    
-    let mut new_lowest_candidate = lowest_candidate;
-    
-    for b in &buttons {
-        let indicator_light_candidate = xor(bits, b.clone());
-        
-        if indicator_light_candidate == indicator_light {
-            new_lowest_candidate = new_lowest_candidate.min(depth);
+fn indicator_light_bfs(start_bits: i32, target: i32, buttons: &[Vec<i32>], max_depth: i32) -> Option<i32> {
+    // Store the current indicator light state and the depth in the queue
+    let mut queue = VecDeque::new();
+    // Store the indicator light states as we discover them.
+    queue.push_back((start_bits, 0));
+
+    while let Some((bits, depth)) = queue.pop_front() {
+        if depth >= max_depth {
             continue;
         }
-        
-        if let Some(result) = recursive(indicator_light_candidate, indicator_light, buttons.clone(), depth + 1, new_lowest_candidate) {
-            new_lowest_candidate = new_lowest_candidate.min(result);
+
+        for b in buttons {
+            let next = xor(bits, b);
+            let next_depth = depth + 1;
+
+            if next == target {
+                return Some(next_depth); // first hit == minimal depth
+            }
+
+            // add to end the next indicator light state. 
+            queue.push_back((next, next_depth));
         }
     }
-    
-    if new_lowest_candidate < lowest_candidate {
-        Some(new_lowest_candidate)
-    } else {
-        None
-    }
+    None
 }
 
 pub fn part_1(input: &(Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i32>>)) -> i32 {
-	let (indicator_lights, buttons, joltage) = input;
-	let mut sum = 0;
-	for i in 0..indicator_lights.len() {
-		let buttons = &buttons[i];
-		let indicator_light = indicator_lights[i];
-		// Now the actual part 1
-		let mut bits = 0;
-		let result = recursive(bits, indicator_light, buttons.clone(), 1, 10).unwrap();
-        println!("{:?}", result);
+    let (indicator_lights, buttons, _) = input;
+    let mut sum = 0;
+    for i in 0..indicator_lights.len() {
+        let buttons = &buttons[i];
+        let indicator_light = indicator_lights[i];
+        let result = indicator_light_bfs(0, indicator_light, buttons, 10).unwrap();
+
         sum += result;
-	}
-	sum
+    }
+    sum
 }
 
 pub fn part_2(input: &(Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i32>>)) -> i32 {
