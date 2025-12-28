@@ -48,7 +48,7 @@ pub fn input_generator(input: &str) -> (Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i3
     )
 }
 
-fn xor(indicator_light: i32, button: Vec<i32>) -> i32 {
+fn xor(indicator_light: i32, button: &Vec<i32>) -> i32 {
 	let mut il = indicator_light;
 	for b in button {
 		il ^= 1 << b;
@@ -56,22 +56,22 @@ fn xor(indicator_light: i32, button: Vec<i32>) -> i32 {
 	il
 }
 
-fn recursive(bits: i32, indicator_light: i32, buttons: Vec<Vec<i32>>, depth: i32, lowest_candidate: i32) -> Option<i32> {
+fn recursive(bits: i32, indicator_light: i32, buttons: &Vec<Vec<i32>>, depth: i32, lowest_candidate: i32) -> Option<i32> {
     if depth >= lowest_candidate {
         return None;
     }
     
     let mut new_lowest_candidate = lowest_candidate;
     
-    for b in &buttons {
-        let indicator_light_candidate = xor(bits, b.clone());
+    for b in buttons {
+        let indicator_light_candidate = xor(bits, b);
         
         if indicator_light_candidate == indicator_light {
             new_lowest_candidate = new_lowest_candidate.min(depth);
             continue;
         }
         
-        if let Some(result) = recursive(indicator_light_candidate, indicator_light, buttons.clone(), depth + 1, new_lowest_candidate) {
+        if let Some(result) = recursive(indicator_light_candidate, indicator_light, buttons, depth + 1, new_lowest_candidate) {
             new_lowest_candidate = new_lowest_candidate.min(result);
         }
     }
@@ -89,9 +89,7 @@ pub fn part_1(input: &(Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i32>>)) -> i32 {
 	for i in 0..indicator_lights.len() {
 		let buttons = &buttons[i];
 		let indicator_light = indicator_lights[i];
-		// Now the actual part 1
-		let mut bits = 0;
-		let result = recursive(bits, indicator_light, buttons.clone(), 1, 10).unwrap();
+		let result = recursive(0, indicator_light, buttons, 1, 10).unwrap();
         println!("{:?}", result);
         sum += result;
 	}
