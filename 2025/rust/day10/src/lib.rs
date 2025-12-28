@@ -86,7 +86,6 @@ pub fn part_1(input: &(Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i32>>)) -> i32 {
         let buttons = &buttons[i];
         let indicator_light = indicator_lights[i];
         let result = indicator_light_bfs(0, indicator_light, buttons, 10).unwrap();
-
         sum += result;
     }
     sum
