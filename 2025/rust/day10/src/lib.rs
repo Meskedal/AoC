@@ -79,18 +79,77 @@ fn indicator_light_bfs(start_bits: i32, target: i32, buttons: &[Vec<i32>], max_d
     None
 }
 
+fn joltage_level_bfs(target: &[i32], list_of_buttons: &[Vec<i32>], max_depth: i32) -> Option<i32> {
+    // Store the current joltage level and the depth in the queue
+    let mut queue = VecDeque::new();
+    // Store the current joltage levels as we discover them.
+    let mut joltage_levels: Vec<i32> = target.to_vec();
+    joltage_levels.fill(0);
+    queue.push_back((joltage_levels, 0));
+
+    while let Some((joltage_levels, depth)) = queue.pop_front() {
+        if depth >= max_depth {
+            continue;
+        }
+
+        'buttons: for buttons in list_of_buttons {
+            let mut next_joltage_levels = joltage_levels.clone();
+            for b in buttons {
+                next_joltage_levels[*b as usize] += 1;
+                // If we are above target, no need to search in this direction anymore
+                if next_joltage_levels[*b as usize] > target[*b as usize] {
+                    continue 'buttons;
+                }
+            } 
+            let next_depth = depth + 1;
+
+            if next_joltage_levels == target {
+                return Some(next_depth); // first hit == minimal depth
+            }
+            // add to end the next indicator light state. 
+            queue.push_back((next_joltage_levels, next_depth));
+        }
+    }
+    None
+}
+
+fn joltage_level_A_star(target: &[i32], list_of_buttons: &[Vec<i32>]) -> Option<i32> {
+    // Store the current joltage level and the depth in the queue
+    let mut queue = VecDeque::new();
+    // Store the current joltage levels as we discover them.
+    let mut joltage_levels: Vec<i32> = target.to_vec();
+    joltage_levels.fill(0);
+    queue.push_back((joltage_levels, 0));
+
+    while let Some((joltage_levels, depth)) = queue.pop_front() {
+        for buttons in list_of_buttons {
+            let mut next_joltage_levels = joltage_levels.clone();
+            for b in buttons {
+                next_joltage_levels[*b as usize] += 1;
+            } 
+            let next_depth = depth + 1;
+
+            if next_joltage_levels == target {
+                return Some(next_depth); // first hit == minimal depth
+            }
+            // add to end the next indicator light state. 
+            queue.push_back((next_joltage_levels, next_depth));
+        }
+    }
+    None
+}
+
 pub fn part_1(input: &(Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i32>>)) -> i32 {
     let (indicator_lights, buttons, _) = input;
-    let mut sum = 0;
-    for i in 0..indicator_lights.len() {
-        let buttons = &buttons[i];
-        let indicator_light = indicator_lights[i];
-        let result = indicator_light_bfs(0, indicator_light, buttons, 10).unwrap();
-        sum += result;
-    }
-    sum
+    indicator_lights.iter().zip(buttons.iter()).map(|(il, b)| indicator_light_bfs(0, *il, b, 10).unwrap()).sum()
 }
 
 pub fn part_2(input: &(Vec<i32>, Vec<Vec<Vec<i32>>>, Vec<Vec<i32>>)) -> i32 {
-	0
+    let (_, buttons, joltage) = input;
+    let mut index = 0;
+    joltage.iter().zip(buttons.iter()).map(|(joltage, b)| {
+        index += 1;
+        println!("{:?}", index);
+        joltage_level_bfs(joltage, b, 20).unwrap()
+    }).sum()
 }
